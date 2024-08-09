@@ -42,10 +42,10 @@ List of Features to be implemented.
 - [x] Apply segmentation Effects to video with Yolov8.
 - [x] Remove video background with [Yolov8n-seg](https://github.com/ultralytics/ultralytics)
 - [x] Ollama Mistral support for summarizing transcripts.
-- [] ChatGPT support for summarizing.
-- [] Export transcript as text.
-- [] Export Summary as text.
-- [] Translate transcripts and summaries to any language.
+- [ ] ChatGPT support for summarizing.
+- [ ] Export transcript as text.
+- [ ] Export Summary as text.
+- [ ] Translate transcripts and summaries to any language.
 
 <br/>
 
