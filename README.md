@@ -6,3 +6,4 @@ To use the yolo you have to download the 32bit Yolov8n from [Ultralytics github]
 
 ## 16bit
 To use all 16bit both Yolo and all anime gan, switch to the "meetigait-v2.0" branch of this repository.
+Background removal is now supported in v0.2, so check it out.
