@@ -62,5 +62,5 @@ List of Features to be implemented.
 <br/>
 
 ## 💬 Updates
-* ` 2024-08-04` Background removal added with yolov8n 16bit, also running on the RyzenAI NPU or CPU.
+* ` 2024-08-04` Background removal added with yolov8n 16bit, also running on the RyzenAI NPU or CPU (commit delayed).
 * `2024-07-30` The first Commit of Meetig-AI-T with most of the features released and Anime Effects wth [AnimeGANv3](https://github.com/TachibanaYoshino/AnimeGANv3), all running on the AMD RyzenAI NPU at 16bit or CPU for PCs without RyzenAI enabled.
