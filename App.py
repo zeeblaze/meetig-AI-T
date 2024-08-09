@@ -62,11 +62,26 @@ class VideoThread(QThread):
                     window.cam.set(cv2.CAP_PROP_POS_FRAMES, 0)
                 success, frame_raw = window.cam.read()
                 if success:
-                    FlippedImage = cv2.resize(cv2.flip(frame_raw, 1), (640, 480))
+                    FlippedImage = cv2.flip(frame_raw, 1)
                     frame_raw = FlippedImage
+
                     with pyvirtualcam.Camera(frame_raw.shape[1], frame_raw.shape[0], fps=30) as cam:
                         if window.apply_effects == True:
-                            if window.anime == True:
+                            if window.effects_type == "segmentation":
+                                seg_model_path = Path(CURRENT_DIR / "models/quantized-models/yolov8n-seg_fp16.onnx")
+                                config_file_path ="vaip_config.json"
+                                provider_options = config_file_path
+                                segmentor = effects()
+                                combined_frame = segmentor.DrawMask(frame_raw, seg_model_path, provider_options)
+                                combined_frame = cv2.cvtColor(combined_frame, cv2.COLOR_RGBA2RGB)
+
+                                self.UpdateImage.emit(combined_frame)
+                                if window.send_to_cam == True:
+                                    combined = cv2.cvtColor(combined_frame, cv2.COLOR_RGB2BGR)
+                                    cam.send(combined)
+                                    cam.sleep_until_next_frame()
+
+                            elif window.anime == True:
                                 if window.effects_type == "hayao":
                                     model = Path(CURRENT_DIR / "models/quantized-models/AnimeGANv3_Hayao_36_fp16.onnx")
                                 elif window.effects_type == "jp_face":
@@ -89,29 +104,37 @@ class VideoThread(QThread):
                             
                             else:
                                 pass
-
-                            if window.segment == True:
-                                seg_model_path = Path(CURRENT_DIR / "models/yolov8n-seg.onnx")
-                                config_file_path ="vaip_config.json"
-                                provider_options = config_file_path
-                                segmentor = effects()
-                                combined_frame = segmentor.DrawMask(frame_raw, seg_model_path, provider_options)
-                                combined_frame = cv2.cvtColor(combined_frame, cv2.COLOR_RGBA2RGB)
-                                
-                                                        
+                                                                                    
                             self.UpdateImage.emit(combined_frame)
                             if window.send_to_cam == True:
                                 combined = cv2.cvtColor(combined_frame, cv2.COLOR_RGB2BGR)
                                 cam.send(combined)
                                 cam.sleep_until_next_frame()
-                        
+
+                        elif window.remove_background == True:
+                            seg_model_path = Path(CURRENT_DIR / "models/quantized-models/yolov8n-seg_fp16.onnx")
+                            config_file_path ="vaip_config.json"
+                            provider_options = config_file_path
+                            background_img = Path(CURRENT_DIR / "images/background.jfif")
+                            segmentor = effects()
+                            combined_frame = segmentor.RemoveBG(frame_raw, background_img, seg_model_path, provider_options)
+                            combined_frame = cv2.cvtColor(combined_frame, cv2.COLOR_RGBA2RGB)
+
+                            self.UpdateImage.emit(combined_frame)
+                            if window.send_to_cam == True:
+                                combined_frame = cv2.cvtColor(combined_frame, cv2.COLOR_RGBA2BGR)
+                                cam.send(combined_frame)
+                                cam.sleep_until_next_frame()
+                            
+                            frame_raw = combined_frame
+
                         else:
                             self.UpdateImage.emit(frame_raw)
                             if window.send_to_cam == True:
                                 combined = cv2.cvtColor(frame_raw, cv2.COLOR_RGB2BGR)
                                 cam.send(combined)
                                 cam.sleep_until_next_frame()
-
+                    
             if window.webcam == False:
                 end = time.time()
                 #Get duration of process in milliseconds
@@ -331,6 +354,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.checkBox.isChecked():
             self.remove_background = True
 
+        else:
+            self.remove_background = False
+
     def send_to_vcam(self):
         if self.vcam_stream.isChecked():
             self.send_to_cam = True
@@ -360,16 +386,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.effects_type = "shinkai"
                 self.segment = False
                 self.anime = True
-            
-            elif self.comboBox_3.currentIndex() == 4:
-                self.effects_type = "cute"
-                self.segment = False
-                self.anime = True
         
         else:
             self.comboBox_3.setDisabled(False)
             self.apply_effects = False
-
 
     def summarize(self):
         if self.pushButton_5.isChecked():

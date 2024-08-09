@@ -32,6 +32,7 @@ class AnimeGAN():
         Args:
             model_path: (str) - path to onnx model file
             downsize_ratio: (float) - ratio to downsize input frame for faster inference
+            provider_config: (str) - path to provider config file
         """
         self.frame = np.array(frame)
         self.downsize_ratio = downsize_ratio
@@ -86,16 +87,16 @@ class AnimeGAN():
         frame = cv2.resize(frame, (wh[0], wh[1]))
         return frame
     def engine_inference(self, img, model_path, provider_config):
-        con_img = img.astype(np.float16)
         get_providers = onnxruntime.get_available_providers()
         if 'VitisAIExecutionProvider' in get_providers:
-            provider = 'VitisAIExecutionProvider'
             self.session = onnxruntime.InferenceSession(model_path,
                                                         providers=['VitisAIExecutionProvider',],
                                                         provider_options=[{"config_file": provider_config}])
 
         else:
             self.session = onnxruntime.InferenceSession(model_path, providers=['CPUExecutionProvider',])
+        inference_dtype = np.float16 if 'float16' in self.session.get_inputs()[0].type else np.float32
+        con_img = img.astype(inference_dtype)
 
         # Get model info
         self.get_input_details()
